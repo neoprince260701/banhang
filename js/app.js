@@ -577,4 +577,215 @@ function exportAllData() {
 window.onload = initializeApp;
 
 // Expose một số hàm global nếu cần debug
-window.VH_App = { switchTab, showToast, loadAllData, handleLogin, seedDemoData, saveSettings };
+// ==================== PRODUCT CRUD (bổ sung) ====================
+function showProductModal(product = null) {
+  const modal = document.getElementById('product-modal');
+  const title = document.getElementById('product-modal-title');
+  
+  if (!modal) return;
+
+  if (product) {
+    currentEditingProductId = product.id;
+    title.textContent = 'Chỉnh sửa sản phẩm';
+    document.getElementById('product-edit-id').value = product.id;
+    document.getElementById('product-code').value = product.code || '';
+    document.getElementById('product-name').value = product.name || '';
+    document.getElementById('product-category').value = product.category || 'ray-nam-cham';
+    document.getElementById('product-unit').value = product.unit || 'Cái';
+    document.getElementById('product-price').value = product.price || 0;
+    document.getElementById('product-stock').value = product.stock || 0;
+  } else {
+    currentEditingProductId = null;
+    title.textContent = 'Thêm sản phẩm mới';
+    document.getElementById('product-edit-id').value = '';
+    document.getElementById('product-code').value = '';
+    document.getElementById('product-name').value = '';
+    document.getElementById('product-category').value = 'ray-nam-cham';
+    document.getElementById('product-unit').value = 'Cái';
+    document.getElementById('product-price').value = '185000';
+    document.getElementById('product-stock').value = '50';
+  }
+  
+  modal.style.display = 'flex';
+}
+
+function hideProductModal() {
+  const modal = document.getElementById('product-modal');
+  if (modal) modal.style.display = 'none';
+}
+
+async function saveProductFromModal() {
+  const code = document.getElementById('product-code').value.trim().toUpperCase();
+  const name = document.getElementById('product-name').value.trim();
+  const category = document.getElementById('product-category').value;
+  const unit = document.getElementById('product-unit').value.trim() || 'Cái';
+  const price = parseFloat(document.getElementById('product-price').value) || 0;
+  const stock = parseInt(document.getElementById('product-stock').value) || 0;
+
+  if (!code || !name || price <= 0) {
+    showToast('Vui lòng điền đầy đủ mã, tên và giá bán', 'error');
+    return;
+  }
+
+  const productData = { code, name, category, unit, price, stock };
+
+  const supabase = window.VH_Supabase?.getSupabase();
+  if (!supabase) {
+    showToast('Chưa kết nối Supabase', 'error');
+    return;
+  }
+
+  try {
+    if (currentEditingProductId) {
+      const { error } = await supabase.from('products').update(productData).eq('id', currentEditingProductId);
+      if (error) throw error;
+    } else {
+      const { error } = await supabase.from('products').insert(productData);
+      if (error) throw error;
+    }
+
+    hideProductModal();
+    await loadAllData();
+    renderProductsTable();
+    renderPOSProductGrid();
+    showToast('Đã lưu sản phẩm thành công', 'success');
+  } catch (err) {
+    showToast('Lỗi lưu sản phẩm: ' + err.message, 'error');
+  }
+}
+
+function editProduct(id) {
+  const product = products.find(p => p.id === id);
+  if (product) showProductModal(product);
+}
+
+async function deleteProduct(id) {
+  if (!confirm('Xóa sản phẩm này?')) return;
+
+  const supabase = window.VH_Supabase?.getSupabase();
+  if (!supabase) return;
+
+  try {
+    const { error } = await supabase.from('products').delete().eq('id', id);
+    if (error) throw error;
+
+    await loadAllData();
+    renderProductsTable();
+    renderPOSProductGrid();
+    showToast('Đã xóa sản phẩm', 'success');
+  } catch (err) {
+    showToast('Lỗi xóa sản phẩm: ' + err.message, 'error');
+  }
+}
+
+// ==================== CUSTOMER MODAL (bổ sung) ====================
+function showCustomerModal(customer = null) {
+  const modal = document.getElementById('customer-modal');
+  if (!modal) {
+    showToast('Modal khách hàng chưa được thêm', 'error');
+    return;
+  }
+
+  const title = document.getElementById('customer-modal-title');
+
+  if (customer) {
+    currentEditingCustomerId = customer.id;
+    title.textContent = 'Chỉnh sửa khách hàng';
+    document.getElementById('customer-edit-id').value = customer.id;
+    document.getElementById('customer-name').value = customer.name || '';
+    document.getElementById('customer-phone').value = customer.phone || '';
+    document.getElementById('customer-address').value = customer.address || '';
+    document.getElementById('customer-note').value = customer.note || '';
+  } else {
+    currentEditingCustomerId = null;
+    title.textContent = 'Thêm khách hàng mới';
+    document.getElementById('customer-edit-id').value = '';
+    document.getElementById('customer-name').value = '';
+    document.getElementById('customer-phone').value = '';
+    document.getElementById('customer-address').value = '';
+    document.getElementById('customer-note').value = '';
+  }
+  
+  modal.style.display = 'flex';
+}
+
+function hideCustomerModal() {
+  const modal = document.getElementById('customer-modal');
+  if (modal) modal.style.display = 'none';
+}
+
+async function saveCustomerFromModal() {
+  const name = document.getElementById('customer-name').value.trim();
+  if (!name) {
+    showToast('Tên khách hàng không được để trống', 'error');
+    return;
+  }
+
+  const phone = document.getElementById('customer-phone').value.trim();
+  const address = document.getElementById('customer-address').value.trim();
+  const note = document.getElementById('customer-note').value.trim();
+
+  const supabase = window.VH_Supabase?.getSupabase();
+  if (!supabase) return;
+
+  try {
+    if (currentEditingCustomerId) {
+      const { error } = await supabase.from('customers').update({ name, phone, address, note }).eq('id', currentEditingCustomerId);
+      if (error) throw error;
+    } else {
+      const { error } = await supabase.from('customers').insert({ name, phone, address, note });
+      if (error) throw error;
+    }
+
+    hideCustomerModal();
+    await loadAllData();
+    renderCustomersTable();
+    showToast('Đã lưu khách hàng', 'success');
+  } catch (err) {
+    showToast('Lỗi lưu khách hàng: ' + err.message, 'error');
+  }
+}
+
+function editCustomer(id) {
+  const customer = customers.find(c => c.id === id);
+  if (customer) showCustomerModal(customer);
+}
+
+async function deleteCustomer(id) {
+  if (!confirm('Xóa khách hàng này?')) return;
+
+  const supabase = window.VH_Supabase?.getSupabase();
+  if (!supabase) return;
+
+  try {
+    const { error } = await supabase.from('customers').delete().eq('id', id);
+    if (error) throw error;
+
+    await loadAllData();
+    renderCustomersTable();
+    showToast('Đã xóa khách hàng', 'success');
+  } catch (err) {
+    showToast('Lỗi xóa khách hàng: ' + err.message, 'error');
+  }
+}
+
+function useCustomerInSale(id) {
+  const customer = customers.find(c => c.id === id);
+  if (!customer) return;
+
+  switchTab('pos');
+  setTimeout(() => {
+    document.getElementById('pos-customer-name').value = customer.name;
+    document.getElementById('pos-customer-phone').value = customer.phone || '';
+    document.getElementById('pos-customer-address').value = customer.address || '';
+    document.getElementById('pos-note').value = customer.note || '';
+    showToast('Đã chọn khách hàng: ' + customer.name, 'success');
+  }, 200);
+}
+
+// Cập nhật window.VH_App
+window.VH_App = { 
+  switchTab, showToast, loadAllData, handleLogin, seedDemoData, saveSettings,
+  showProductModal, saveProductFromModal, editProduct, deleteProduct,
+  showCustomerModal, saveCustomerFromModal, editCustomer, deleteCustomer, useCustomerInSale
+};
