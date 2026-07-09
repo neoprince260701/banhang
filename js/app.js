@@ -792,8 +792,98 @@ function useCustomerInSale(id) {
 }
 
 // Cập nhật window.VH_App
+// ==================== RENDER FUNCTIONS (bổ sung đầy đủ) ====================
+function refreshAllUI() {
+  renderPOSProductGrid();
+  renderProductsTable();
+  if (typeof renderCustomersTable === 'function') renderCustomersTable();
+  if (typeof renderOrdersTable === 'function') renderOrdersTable();
+  updateDashboard();
+}
+
+function renderCustomersTable() {
+  const tbody = document.getElementById('customers-table-body');
+  const searchInput = document.getElementById('customer-search');
+  if (!tbody) return;
+
+  const searchVal = searchInput ? normalize(searchInput.value) : '';
+
+  let filtered = customers;
+  if (searchVal) {
+    filtered = customers.filter(c =>
+      normalize(c.name + ' ' + (c.phone || '') + ' ' + (c.address || '')).includes(searchVal)
+    );
+  }
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="5" class="px-6 py-8 text-center text-slate-400">Không có khách hàng</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = filtered.map(c => `
+    <tr>
+      <td class="px-6 py-3.5 font-medium">${c.name}</td>
+      <td class="px-6 py-3.5 font-mono text-sm">${c.phone || ''}</td>
+      <td class="px-6 py-3.5 text-sm text-slate-600">${c.address || ''}</td>
+      <td class="px-6 py-3.5 text-xs text-slate-500 italic">${c.note || ''}</td>
+      <td class="px-6 py-3.5">
+        <div class="flex justify-center gap-x-1.5">
+          <button onclick="useCustomerInSale('${c.id}')" class="px-3 py-1 text-xs bg-emerald-100 hover:bg-emerald-200 text-emerald-700 rounded-xl font-medium">Dùng</button>
+          <button onclick="editCustomer('${c.id}')" class="px-3 py-1 text-xs bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-xl font-medium">Sửa</button>
+          <button onclick="deleteCustomer('${c.id}')" class="px-3 py-1 text-xs bg-red-100 hover:bg-red-200 text-red-700 rounded-xl font-medium">Xóa</button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function renderOrdersTable() {
+  const tbody = document.getElementById('orders-table-body');
+  const searchInput = document.getElementById('order-search');
+  if (!tbody) return;
+
+  const searchVal = searchInput ? normalize(searchInput.value) : '';
+
+  let filtered = orders;
+  if (searchVal) {
+    filtered = orders.filter(o =>
+      normalize((o.invoice_no || '') + ' ' + (o.customer_name || '')).includes(searchVal)
+    );
+  }
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="6" class="px-6 py-10 text-center text-slate-400">Chưa có đơn hàng nào</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = filtered.map(order => {
+    const date = new Date(order.created_at);
+    const debtColor = order.debt > 0 ? 'text-red-600 font-semibold' : 'text-emerald-600';
+    return `
+      <tr class="cursor-pointer hover:bg-amber-50/40" onclick="viewOrderDetail('${order.id}')">
+        <td class="px-6 py-3.5 font-mono text-xs font-semibold text-amber-700">${order.invoice_no}</td>
+        <td class="px-6 py-3.5 text-sm">${date.toLocaleDateString('vi-VN')}</td>
+        <td class="px-6 py-3.5">
+          <div class="font-medium">${order.customer_name}</div>
+          <div class="text-xs text-slate-500">${order.customer_phone || ''}</div>
+        </td>
+        <td class="px-4 py-3.5 text-right font-semibold tabular-nums">${formatMoney(order.grand)}</td>
+        <td class="px-4 py-3.5 text-right ${debtColor} tabular-nums">${formatMoney(order.debt)}</td>
+        <td class="px-6 py-3.5 text-center" onclick="event.stopImmediatePropagation()">
+          <div class="flex justify-center gap-x-2">
+            <button onclick="viewOrderDetail('${order.id}'); event.stopImmediatePropagation()" class="px-4 py-1 text-xs bg-white border border-slate-200 hover:bg-slate-50 rounded-2xl font-medium">Chi tiết</button>
+            <button onclick="reloadOrderToCartFromId('${order.id}'); event.stopImmediatePropagation()" class="px-4 py-1 text-xs bg-amber-500 hover:bg-amber-600 text-white rounded-2xl font-medium">Tải lại</button>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+// Cập nhật lại window.VH_App
 window.VH_App = { 
   switchTab, showToast, loadAllData, handleLogin, seedDemoData, saveSettings,
   showProductModal, saveProductFromModal, editProduct, deleteProduct,
-  showCustomerModal, saveCustomerFromModal, editCustomer, deleteCustomer, useCustomerInSale
+  showCustomerModal, saveCustomerFromModal, editCustomer, deleteCustomer, useCustomerInSale,
+  refreshAllUI, renderCustomersTable, renderOrdersTable
 };
