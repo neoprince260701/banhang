@@ -301,9 +301,68 @@
         </div>
       </div>
 
-      <!-- CUSTOMERS, ORDERS, SETTINGS pages (rút gọn tương tự) -->
-      <div id="page-customers" class="tab-page hidden"><div class="section-card p-6">Trang Khách hàng (đang hoàn thiện module)</div></div>
-      <div id="page-orders" class="tab-page hidden"><div class="section-card p-6">Trang Đơn hàng (đang hoàn thiện module)</div></div>
+      <div id="page-customers" class="tab-page hidden">
+        <div class="flex items-center justify-between mb-5">
+          <div>
+            <h3 class="text-2xl font-semibold">Quản lý khách hàng</h3>
+            <p class="text-sm text-slate-500">Danh sách khách hàng thân thiết</p>
+          </div>
+          <button onclick="showCustomerModal()" class="flex items-center gap-x-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 transition text-white font-semibold rounded-2xl text-sm">
+            <i class="fa-solid fa-user-plus"></i>
+            <span>Thêm khách hàng</span>
+          </button>
+        </div>
+
+        <div class="section-card overflow-hidden">
+          <div class="p-4 border-b flex gap-x-3">
+            <div class="flex-1 relative">
+              <input id="customer-search" type="text" placeholder="Tìm tên, SĐT, địa chỉ..." class="w-full pl-10 border border-slate-200 rounded-2xl py-2.5 text-sm" oninput="renderCustomersTable()">
+              <i class="fa-solid fa-search absolute left-4 top-3 text-slate-400"></i>
+            </div>
+          </div>
+          <table class="w-full data-table">
+            <thead class="bg-slate-50 text-xs uppercase text-slate-500">
+              <tr>
+                <th class="px-6 py-3 text-left">Tên khách hàng</th>
+                <th class="px-6 py-3 text-left">Số điện thoại</th>
+                <th class="px-6 py-3 text-left">Địa chỉ</th>
+                <th class="px-6 py-3 text-left">Ghi chú</th>
+                <th class="px-6 py-3 text-center w-44">Thao tác</th>
+              </tr>
+            </thead>
+            <tbody id="customers-table-body" class="text-sm divide-y"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div id="page-orders" class="tab-page hidden">
+        <div class="flex items-center justify-between mb-5">
+          <div>
+            <h3 class="text-2xl font-semibold">Lịch sử đơn hàng</h3>
+            <p class="text-sm text-slate-500">Tất cả đơn hàng đã lưu • Tải lại vào giỏ để chỉnh sửa</p>
+          </div>
+          <div class="flex items-center gap-x-2 text-sm">
+            <input id="order-search" type="text" placeholder="Tìm mã đơn / khách hàng..." class="border border-slate-200 rounded-2xl px-4 py-2 text-sm w-72" oninput="renderOrdersTable()">
+          </div>
+        </div>
+
+        <div class="section-card overflow-hidden">
+          <table class="w-full data-table">
+            <thead class="bg-slate-50 text-xs uppercase text-slate-500">
+              <tr>
+                <th class="px-6 py-3 text-left">Mã đơn</th>
+                <th class="px-6 py-3 text-left">Ngày tạo</th>
+                <th class="px-6 py-3 text-left">Khách hàng</th>
+                <th class="px-4 py-3 text-right">Tổng tiền</th>
+                <th class="px-4 py-3 text-right">Còn nợ</th>
+                <th class="px-6 py-3 text-center w-56">Thao tác</th>
+              </tr>
+            </thead>
+            <tbody id="orders-table-body" class="text-sm divide-y"></tbody>
+          </table>
+        </div>
+      </div>
+
       <div id="page-settings" class="tab-page hidden">
         <div class="max-w-3xl">
           <h3 class="text-2xl font-semibold mb-1">Cài đặt cửa hàng</h3>
