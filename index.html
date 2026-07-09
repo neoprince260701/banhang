@@ -7,8 +7,10 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="stylesheet" href="css/style.css">
-  <!-- Supabase UMD (rất ổn định cho single HTML + module) -->
+  <!-- Supabase UMD -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <!-- QR Code Library for Invoice -->
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 </head>
 <body class="bg-slate-50 text-slate-800">
 
@@ -302,7 +304,54 @@
       <!-- CUSTOMERS, ORDERS, SETTINGS pages (rút gọn tương tự) -->
       <div id="page-customers" class="tab-page hidden"><div class="section-card p-6">Trang Khách hàng (đang hoàn thiện module)</div></div>
       <div id="page-orders" class="tab-page hidden"><div class="section-card p-6">Trang Đơn hàng (đang hoàn thiện module)</div></div>
-      <div id="page-settings" class="tab-page hidden"><div class="section-card p-6">Cài đặt cửa hàng</div></div>
+      <div id="page-settings" class="tab-page hidden">
+        <div class="max-w-3xl">
+          <h3 class="text-2xl font-semibold mb-1">Cài đặt cửa hàng</h3>
+          <p class="text-slate-500 mb-6">Thông tin này sẽ hiển thị trên hóa đơn in</p>
+
+          <div class="section-card p-7 space-y-6">
+            <div>
+              <label class="block text-xs font-semibold tracking-wider text-slate-500 mb-1.5">TÊN CỬA HÀNG</label>
+              <input id="setting-shop-name" class="w-full border border-slate-200 rounded-2xl px-4 py-3 text-lg font-medium" value="VŨ HOÀNG LIGHTING">
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div>
+                <label class="block text-xs font-semibold tracking-wider text-slate-500 mb-1.5">HOTLINE</label>
+                <input id="setting-hotline" class="w-full border border-slate-200 rounded-2xl px-4 py-3" value="0877 933 362">
+              </div>
+              <div>
+                <label class="block text-xs font-semibold tracking-wider text-slate-500 mb-1.5">ĐỊA CHỨ</label>
+                <input id="setting-address" class="w-full border border-slate-200 rounded-2xl px-4 py-3" value="Hà Nội, Việt Nam">
+              </div>
+            </div>
+
+            <div class="pt-4 border-t">
+              <h4 class="font-semibold mb-3 flex items-center gap-x-2"><i class="fa-solid fa-qrcode text-amber-500"></i> Thông tin thanh toán (hiển thị trên hóa đơn)</h4>
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label class="text-xs text-slate-500">Ngân hàng</label>
+                  <input id="setting-bank-name" class="mt-1 w-full border border-slate-200 rounded-2xl px-4 py-2.5 text-sm" value="VP BANK">
+                </div>
+                <div>
+                  <label class="text-xs text-slate-500">Số tài khoản</label>
+                  <input id="setting-bank-account" class="mt-1 w-full border border-slate-200 rounded-2xl px-4 py-2.5 text-sm font-mono" value="5577626198">
+                </div>
+                <div>
+                  <label class="text-xs text-slate-500">Chủ tài khoản</label>
+                  <input id="setting-bank-holder" class="mt-1 w-full border border-slate-200 rounded-2xl px-4 py-2.5 text-sm" value="HKD HOANG VU LIGHTING">
+                </div>
+              </div>
+            </div>
+
+            <div class="flex gap-x-3 pt-4">
+              <button onclick="saveSettings()" class="px-8 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-2xl">Lưu cài đặt</button>
+              <button onclick="exportAllData()" class="px-6 py-3 border border-slate-300 hover:bg-slate-50 font-medium rounded-2xl flex items-center gap-x-2 text-sm">
+                <i class="fa-solid fa-download"></i> <span>Xuất dữ liệu (JSON)</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 

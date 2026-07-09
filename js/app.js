@@ -480,12 +480,101 @@ async function initializeApp() {
   if (document.getElementById('page-dashboard')) {
     updateDashboard();
   }
+  loadSettingsToForm();
 
   // 4. Gắn các event cần thiết (nếu có)
   console.log('%c[Vũ Hoàng POS] App initialized (modular version)', 'color:#854d0e');
 }
 
+// ==================== SEED DEMO DATA ====================
+async function seedDemoData() {
+  const supabase = window.VH_Supabase?.getSupabase();
+  const user = window.VH_Supabase?.getCurrentUser();
+
+  if (!supabase || !user) {
+    showToast('Cần đăng nhập Supabase để seed dữ liệu', 'error');
+    return;
+  }
+
+  const demoProducts = [
+    { code: 'RAY48V-01', name: 'Đèn ray nam châm 48V 1 mét (kèm nguồn)', category: 'ray-nam-cham', unit: 'Bộ', price: 185000, stock: 87 },
+    { code: 'RAY48V-05', name: 'Đèn ray nam châm 48V 0.5 mét', category: 'ray-nam-cham', unit: 'Cái', price: 125000, stock: 64 },
+    { code: 'RAY48V-2M', name: 'Đèn ray nam châm 48V 2 mét', category: 'ray-nam-cham', unit: 'Cái', price: 295000, stock: 31 },
+    { code: 'LED-DR-150W', name: 'Nguồn Driver LED 150W 48V', category: 'nguon-led', unit: 'Cái', price: 245000, stock: 42 },
+    { code: 'LED-DR-100W', name: 'Nguồn Driver LED 100W 48V', category: 'nguon-led', unit: 'Cái', price: 175000, stock: 55 },
+    { code: 'QT-42INCH', name: 'Quạt trần 42 inch có remote', category: 'quat-tran', unit: 'Cái', price: 1250000, stock: 19 },
+    { code: 'QT-52INCH', name: 'Quạt trần 52 inch DC inverter', category: 'quat-tran', unit: 'Cái', price: 1890000, stock: 11 },
+    { code: 'DEN-TT-01', name: 'Đèn thả trần trang trí 3 bóng', category: 'den-trang-tri', unit: 'Bộ', price: 485000, stock: 26 },
+    { code: 'DEN-TT-02', name: 'Đèn ốp trần LED 24W vuông', category: 'den-trang-tri', unit: 'Cái', price: 165000, stock: 93 },
+    { code: 'PK-RAY-01', name: 'Nối ray nam châm chữ L', category: 'phu-kien', unit: 'Cái', price: 45000, stock: 140 }
+  ];
+
+  const demoCustomers = [
+    { name: 'Anh Minh', phone: '0912 345 678', address: 'Số 12 Ngõ 45 Trần Duy Hưng, Hà Nội', note: 'Khách mua ray nam châm thường xuyên' },
+    { name: 'Chị Lan', phone: '0987 654 321', address: 'Chung cư The Manor, Mỹ Đình', note: 'Thanh toán chuyển khoản nhanh' },
+    { name: 'Anh Tuấn', phone: '0936 112 233', address: 'Phố Huế, Hai Bà Trưng', note: '' }
+  ];
+
+  try {
+    // Clear old data (optional - comment out if you want to keep existing)
+    // await supabase.from('products').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+    // await supabase.from('customers').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+
+    const { error: pErr } = await supabase.from('products').insert(demoProducts);
+    if (pErr) throw pErr;
+
+    const { error: cErr } = await supabase.from('customers').insert(demoCustomers);
+    if (cErr) throw cErr;
+
+    showToast('Đã seed dữ liệu demo thành công!', 'success');
+    await loadAllData();
+    refreshAllUI();
+  } catch (err) {
+    console.error(err);
+    showToast('Seed dữ liệu thất bại: ' + err.message, 'error');
+  }
+}
+
+// ==================== SETTINGS ====================
+function saveSettings() {
+  const settings = {
+    shopName: document.getElementById('setting-shop-name').value.trim(),
+    hotline: document.getElementById('setting-hotline').value.trim(),
+    address: document.getElementById('setting-address').value.trim(),
+    bankName: document.getElementById('setting-bank-name').value.trim(),
+    bankAccount: document.getElementById('setting-bank-account').value.trim(),
+    bankHolder: document.getElementById('setting-bank-holder').value.trim()
+  };
+  localStorage.setItem('vuhoang_settings', JSON.stringify(settings));
+  showToast('Đã lưu cài đặt cửa hàng', 'success');
+}
+
+function loadSettingsToForm() {
+  const saved = localStorage.getItem('vuhoang_settings');
+  if (!saved) return;
+  const s = JSON.parse(saved);
+  if (document.getElementById('setting-shop-name')) document.getElementById('setting-shop-name').value = s.shopName || 'VŨ HOÀNG LIGHTING';
+  if (document.getElementById('setting-hotline')) document.getElementById('setting-hotline').value = s.hotline || '0877 933 362';
+  if (document.getElementById('setting-address')) document.getElementById('setting-address').value = s.address || 'Hà Nội, Việt Nam';
+  if (document.getElementById('setting-bank-name')) document.getElementById('setting-bank-name').value = s.bankName || 'VP BANK';
+  if (document.getElementById('setting-bank-account')) document.getElementById('setting-bank-account').value = s.bankAccount || '5577626198';
+  if (document.getElementById('setting-bank-holder')) document.getElementById('setting-bank-holder').value = s.bankHolder || 'HKD HOANG VU LIGHTING';
+}
+
+function exportAllData() {
+  // Simple export (can be expanded)
+  const data = { products, customers, orders };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'vuhoang-pos-export.json';
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('Đã xuất dữ liệu', 'success');
+}
+
 window.onload = initializeApp;
 
 // Expose một số hàm global nếu cần debug
-window.VH_App = { switchTab, showToast, loadAllData, handleLogin };
+window.VH_App = { switchTab, showToast, loadAllData, handleLogin, seedDemoData, saveSettings };
