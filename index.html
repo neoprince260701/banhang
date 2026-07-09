@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VŨ HOÀNG LIGHTING • POS Pro (Supabase)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="css/style.css">
+  <!-- Supabase UMD (rất ổn định cho single HTML + module) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+</head>
+<body class="bg-slate-50 text-slate-800">
+
+  <!-- LOGIN SCREEN -->
+  <div id="login-screen" class="fixed inset-0 z-[300] login-bg flex items-center justify-center p-6">
+    <div class="w-full max-w-md">
+      <div class="flex flex-col items-center mb-8">
+        <div class="flex items-center gap-x-4 mb-4">
+          <div class="w-16 h-16 bg-amber-500 rounded-3xl flex items-center justify-center shadow-2xl">
+            <i class="fa-solid fa-lightbulb text-white text-4xl"></i>
+          </div>
+          <div>
+            <h1 class="font-display text-5xl font-semibold tracking-tighter text-white">VŨ HOÀNG</h1>
+            <p class="text-amber-400 text-sm -mt-1 tracking-[2px]">LIGHTING</p>
+          </div>
+        </div>
+        <div class="text-center">
+          <div class="text-2xl font-semibold text-white tracking-tight">Hệ thống POS Pro</div>
+          <div class="text-amber-300 text-sm mt-1">Phiên bản Supabase • Dữ liệu đồng bộ</div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-3xl shadow-2xl p-8 border border-slate-100">
+        <div class="mb-6">
+          <h2 class="text-2xl font-semibold text-slate-800">Đăng nhập</h2>
+          <p class="text-sm text-slate-500 mt-1">Sử dụng tài khoản Supabase của cửa hàng</p>
+        </div>
+
+        <div class="space-y-5">
+          <div>
+            <label class="block text-xs font-semibold tracking-wider text-slate-500 mb-1.5">EMAIL</label>
+            <div class="relative">
+              <input id="login-email" type="email" value="admin@vuhoanglighting.vn" 
+                     class="w-full border border-slate-200 focus:border-amber-400 rounded-2xl px-4 py-3 text-sm pl-11 outline-none">
+              <i class="fa-solid fa-envelope absolute left-4 top-3.5 text-slate-400"></i>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold tracking-wider text-slate-500 mb-1.5">MẬT KHẨU</label>
+            <div class="relative">
+              <input id="login-password" type="password" value="demo123456" 
+                     class="w-full border border-slate-200 focus:border-amber-400 rounded-2xl px-4 py-3 text-sm pl-11 outline-none">
+              <i class="fa-solid fa-lock absolute left-4 top-3.5 text-slate-400"></i>
+            </div>
+          </div>
+
+          <button onclick="handleLogin()" 
+                  class="w-full flex items-center justify-center gap-x-2 bg-amber-600 hover:bg-amber-700 active:bg-amber-800 transition-all text-white font-semibold py-3.5 rounded-2xl text-sm shadow-lg mt-2">
+            <i class="fa-solid fa-sign-in-alt"></i>
+            <span>ĐĂNG NHẬP VÀO HỆ THỐNG</span>
+          </button>
+
+          <div class="text-center">
+            <button onclick="quickDemoLogin()" 
+                    class="text-xs text-amber-600 hover:text-amber-700 font-medium flex items-center gap-x-1.5 mx-auto">
+              <i class="fa-solid fa-magic"></i>
+              <span>Chế độ Demo (không cần Supabase)</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN APP -->
+  <div id="main-app" class="hidden">
+    <!-- HEADER -->
+    <header class="pos-header border-b border-slate-700 sticky top-0 z-50">
+      <div class="max-w-screen-2xl mx-auto">
+        <div class="px-8 py-4 flex items-center justify-between">
+          <div class="flex items-center gap-x-4">
+            <div class="flex items-center gap-x-3">
+              <div class="w-11 h-11 bg-amber-500 rounded-2xl flex items-center justify-center">
+                <i class="fa-solid fa-lightbulb text-white text-3xl"></i>
+              </div>
+              <div>
+                <h1 class="font-display text-3xl font-semibold tracking-tighter text-white">VŨ HOÀNG</h1>
+                <p class="text-amber-300 text-xs -mt-1 tracking-[1.5px]">LIGHTING</p>
+              </div>
+            </div>
+            <div class="px-3 py-1.5 bg-white/10 backdrop-blur rounded-2xl text-xs text-amber-200 flex items-center gap-x-2">
+              <i class="fa-solid fa-circle text-emerald-400 animate-pulse"></i>
+              <span class="font-medium">SUPABASE</span>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-x-4">
+            <div id="user-info" class="hidden md:flex items-center gap-x-3 bg-white/10 px-4 py-1.5 rounded-2xl text-sm">
+              <div class="text-right">
+                <div id="user-email" class="text-white text-sm font-medium"></div>
+                <div class="text-amber-300 text-[10px]">Đã đăng nhập</div>
+              </div>
+              <button onclick="handleLogout()" class="px-3 py-1 text-xs bg-white/20 hover:bg-white/30 transition rounded-xl text-white flex items-center gap-x-1">
+                <i class="fa-solid fa-sign-out-alt fa-sm"></i>
+                <span>Thoát</span>
+              </button>
+            </div>
+
+            <button onclick="resetAllData()" class="flex items-center gap-x-2 px-4 py-2 bg-white/10 hover:bg-white/20 text-white text-sm rounded-2xl border border-white/20">
+              <i class="fa-solid fa-redo fa-sm"></i>
+              <span class="hidden md:inline">Reset</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- TABS -->
+        <div class="px-8 pb-2 flex gap-x-1 overflow-x-auto">
+          <button onclick="switchTab('dashboard')" id="tab-dashboard" class="nav-tab flex items-center gap-x-2 px-5 py-2.5 text-sm font-semibold rounded-2xl text-white/90 hover:text-white tab-active">
+            <i class="fa-solid fa-chart-line w-4"></i><span>Tổng quan</span>
+          </button>
+          <button onclick="switchTab('pos')" id="tab-pos" class="nav-tab flex items-center gap-x-2 px-5 py-2.5 text-sm font-semibold rounded-2xl text-white/90 hover:text-white">
+            <i class="fa-solid fa-cash-register w-4"></i><span>Bán hàng nhanh</span>
+          </button>
+          <button onclick="switchTab('products')" id="tab-products" class="nav-tab flex items-center gap-x-2 px-5 py-2.5 text-sm font-semibold rounded-2xl text-white/90 hover:text-white">
+            <i class="fa-solid fa-boxes w-4"></i><span>Sản phẩm</span>
+          </button>
+          <button onclick="switchTab('customers')" id="tab-customers" class="nav-tab flex items-center gap-x-2 px-5 py-2.5 text-sm font-semibold rounded-2xl text-white/90 hover:text-white">
+            <i class="fa-solid fa-users w-4"></i><span>Khách hàng</span>
+          </button>
+          <button onclick="switchTab('orders')" id="tab-orders" class="nav-tab flex items-center gap-x-2 px-5 py-2.5 text-sm font-semibold rounded-2xl text-white/90 hover:text-white">
+            <i class="fa-solid fa-receipt w-4"></i><span>Đơn hàng</span>
+          </button>
+          <button onclick="switchTab('settings')" id="tab-settings" class="nav-tab flex items-center gap-x-2 px-5 py-2.5 text-sm font-semibold rounded-2xl text-white/90 hover:text-white">
+            <i class="fa-solid fa-cog w-4"></i><span>Cài đặt</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <div class="max-w-screen-2xl mx-auto px-6 pt-6 pb-12">
+      <!-- DASHBOARD -->
+      <div id="page-dashboard" class="tab-page">
+        <div class="flex items-end justify-between mb-6">
+          <div>
+            <h2 class="text-3xl font-semibold tracking-tight">Tổng quan kinh doanh</h2>
+            <p class="text-slate-500 mt-1">Dữ liệu từ Supabase • Cập nhật realtime</p>
+          </div>
+          <button onclick="seedDemoData()" class="flex items-center gap-x-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-2xl">
+            <i class="fa-solid fa-magic"></i>
+            <span>Seed Demo Data</span>
+          </button>
+        </div>
+
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+          <!-- KPI cards (giống file gốc) -->
+          <div class="stat-card section-card p-5">
+            <div class="flex justify-between items-start">
+              <div>
+                <div class="text-xs uppercase tracking-widest text-slate-500 font-medium">Doanh thu hôm nay</div>
+                <div id="kpi-today-revenue" class="text-4xl font-semibold tabular-nums text-emerald-600 mt-2">0đ</div>
+              </div>
+              <div class="w-10 h-10 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center"><i class="fa-solid fa-wallet text-xl"></i></div>
+            </div>
+          </div>
+          <!-- Các KPI còn lại rút gọn cho ngắn gọn -->
+          <div class="stat-card section-card p-5">
+            <div class="flex justify-between items-start">
+              <div>
+                <div class="text-xs uppercase tracking-widest text-slate-500 font-medium">Đơn hàng hôm nay</div>
+                <div id="kpi-today-orders" class="text-4xl font-semibold tabular-nums text-amber-600 mt-2">0</div>
+              </div>
+              <div class="w-10 h-10 bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center"><i class="fa-solid fa-file-invoice text-xl"></i></div>
+            </div>
+          </div>
+          <div class="stat-card section-card p-5">
+            <div class="flex justify-between items-start">
+              <div>
+                <div class="text-xs uppercase tracking-widest text-slate-500 font-medium">Sản phẩm</div>
+                <div id="kpi-products" class="text-4xl font-semibold tabular-nums text-slate-700 mt-2">0</div>
+              </div>
+              <div class="w-10 h-10 bg-slate-100 text-slate-600 rounded-2xl flex items-center justify-center"><i class="fa-solid fa-box text-xl"></i></div>
+            </div>
+          </div>
+          <div class="stat-card section-card p-5">
+            <div class="flex justify-between items-start">
+              <div>
+                <div class="text-xs uppercase tracking-widest text-slate-500 font-medium">Khách hàng</div>
+                <div id="kpi-customers" class="text-4xl font-semibold tabular-nums text-blue-600 mt-2">0</div>
+              </div>
+              <div class="w-10 h-10 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center"><i class="fa-solid fa-user-friends text-xl"></i></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+          <div class="lg:col-span-3 section-card p-6">
+            <h3 class="font-semibold mb-4 flex items-center gap-x-2"><i class="fa-solid fa-clock-rotate-left text-amber-500"></i> Đơn hàng gần đây</h3>
+            <div id="recent-orders-list" class="space-y-2 text-sm"></div>
+          </div>
+          <div class="lg:col-span-2 section-card p-6">
+            <h3 class="font-semibold mb-4 flex items-center gap-x-2"><i class="fa-solid fa-trophy text-amber-500"></i> Sản phẩm bán chạy</h3>
+            <div id="top-products-list" class="space-y-3 text-sm"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- POS PAGE -->
+      <div id="page-pos" class="tab-page hidden">
+        <div class="grid grid-cols-1 xl:grid-cols-12 gap-6">
+          <div class="xl:col-span-7 section-card p-6">
+            <div class="flex items-center justify-between mb-4">
+              <div>
+                <h3 class="font-semibold text-xl">Chọn sản phẩm</h3>
+                <p class="text-xs text-slate-500">Click để thêm vào giỏ</p>
+              </div>
+              <div class="flex items-center gap-x-2">
+                <div class="relative w-72">
+                  <input id="pos-product-code" type="text" placeholder="Nhập mã SP..." class="w-full pl-10 pr-4 py-2.5 text-sm border border-slate-200 rounded-2xl focus:border-amber-400" onkeydown="if(event.key==='Enter') addProductByCodeFromPOS()">
+                  <i class="fa-solid fa-barcode absolute left-4 top-3.5 text-slate-400"></i>
+                </div>
+                <button onclick="addProductByCodeFromPOS()" class="px-5 py-2.5 bg-slate-900 hover:bg-black text-white text-sm font-semibold rounded-2xl">Thêm</button>
+              </div>
+            </div>
+            <div class="flex flex-wrap gap-2 mb-4" id="category-filters"></div>
+            <div id="pos-product-grid" class="pos-grid grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 max-h-[520px] overflow-auto pr-1"></div>
+          </div>
+
+          <div class="xl:col-span-5 space-y-6">
+            <!-- Customer + Cart + Actions (giống file gốc, rút gọn để ngắn) -->
+            <div class="section-card p-5">
+              <div class="flex items-center justify-between mb-3">
+                <h4 class="font-semibold flex items-center gap-x-2"><i class="fa-solid fa-user text-amber-500"></i> Khách hàng</h4>
+                <button onclick="quickAddCustomer()" class="text-xs px-3 py-1 bg-amber-100 hover:bg-amber-200 text-amber-700 rounded-xl font-medium">+ Khách mới</button>
+              </div>
+              <input id="pos-customer-name" list="pos-customer-list" placeholder="Tên khách hàng..." class="w-full border border-slate-200 rounded-2xl px-4 py-2.5 text-sm focus:border-amber-400">
+              <datalist id="pos-customer-list"></datalist>
+              <div class="grid grid-cols-2 gap-3 mt-3">
+                <input id="pos-customer-phone" placeholder="Số điện thoại" class="border border-slate-200 rounded-2xl px-4 py-2 text-sm">
+                <input id="pos-customer-address" placeholder="Địa chỉ" class="border border-slate-200 rounded-2xl px-4 py-2 text-sm">
+              </div>
+              <textarea id="pos-note" placeholder="Ghi chú..." class="mt-3 w-full border border-slate-200 rounded-2xl px-4 py-2 text-sm h-16"></textarea>
+            </div>
+
+            <div class="section-card p-5 flex flex-col" style="max-height:460px">
+              <div class="flex justify-between mb-3">
+                <h4 class="font-semibold flex items-center gap-x-2"><i class="fa-solid fa-shopping-cart text-amber-500"></i> Giỏ hàng <span id="cart-count-badge" class="ml-1 text-xs px-2 py-px bg-amber-100 text-amber-700 rounded-full">0</span></h4>
+                <button onclick="clearCart()" class="text-xs text-red-500 hover:text-red-600">Xóa hết</button>
+              </div>
+              <div id="pos-cart-list" class="flex-1 overflow-auto space-y-2 pr-1 text-sm"></div>
+              <!-- Totals -->
+              <div class="pt-4 mt-auto border-t space-y-2 text-sm">
+                <div class="flex justify-between"><span>Tạm tính</span> <span id="pos-subtotal" class="font-semibold">0đ</span></div>
+                <div class="flex justify-between"><span>Chiết khấu</span> <input id="pos-discount" type="number" value="0" class="w-24 text-right border border-slate-200 rounded-xl px-3 py-1 text-sm" oninput="recalculatePOS()"></div>
+                <div class="flex justify-between"><span>Phí vận chuyển</span> <input id="pos-shipping" type="number" value="0" class="w-24 text-right border border-slate-200 rounded-xl px-3 py-1 text-sm" oninput="recalculatePOS()"></div>
+                <div class="flex justify-between pt-2 border-t font-semibold text-base"><span>TỔNG</span> <span id="pos-grand" class="text-emerald-600">0đ</span></div>
+                <div class="flex justify-between text-xs"><span>Đã thanh toán</span> <input id="pos-paid" type="number" value="0" class="w-24 text-right border border-emerald-200 bg-emerald-50 rounded-xl px-3 py-1 text-sm" oninput="recalculatePOS()"></div>
+                <div class="flex justify-between text-xs font-medium"><span>Còn nợ</span> <span id="pos-debt" class="text-red-600">0đ</span></div>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-3 gap-3">
+              <button onclick="saveOrder()" class="col-span-1 flex items-center justify-center gap-x-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3.5 rounded-2xl text-sm"><i class="fa-solid fa-save"></i> <span>Lưu đơn</span></button>
+              <button onclick="printCurrentInvoice()" class="col-span-1 flex items-center justify-center gap-x-2 bg-white border border-slate-300 hover:bg-slate-50 font-semibold py-3.5 rounded-2xl text-sm"><i class="fa-solid fa-print"></i> <span>In PDF</span></button>
+              <button onclick="newSale()" class="col-span-1 flex items-center justify-center gap-x-2 bg-white border border-slate-300 hover:bg-red-50 hover:text-red-600 font-semibold py-3.5 rounded-2xl text-sm"><i class="fa-solid fa-plus"></i> <span>Đơn mới</span></button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PRODUCTS PAGE -->
+      <div id="page-products" class="tab-page hidden">
+        <div class="flex justify-between mb-5">
+          <div>
+            <h3 class="text-2xl font-semibold">Quản lý sản phẩm</h3>
+            <p class="text-sm text-slate-500">Đồng bộ Supabase</p>
+          </div>
+          <button onclick="showProductModal()" class="flex items-center gap-x-2 px-5 py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-semibold rounded-2xl text-sm">
+            <i class="fa-solid fa-plus"></i> <span>Thêm sản phẩm</span>
+          </button>
+        </div>
+        <div class="section-card overflow-hidden">
+          <div class="p-4 border-b flex gap-x-3">
+            <input id="product-search" type="text" placeholder="Tìm sản phẩm..." class="flex-1 border border-slate-200 rounded-2xl px-4 py-2.5 text-sm" oninput="renderProductsTable()">
+          </div>
+          <table class="w-full data-table">
+            <thead class="bg-slate-50 text-xs uppercase text-slate-500">
+              <tr>
+                <th class="px-6 py-3 text-left">Mã SP</th>
+                <th class="px-6 py-3 text-left">Tên sản phẩm</th>
+                <th class="px-4 py-3 text-right">Giá</th>
+                <th class="px-4 py-3 text-center">Tồn kho</th>
+                <th class="px-6 py-3 text-center w-40">Thao tác</th>
+              </tr>
+            </thead>
+            <tbody id="products-table-body" class="text-sm divide-y"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- CUSTOMERS, ORDERS, SETTINGS pages (rút gọn tương tự) -->
+      <div id="page-customers" class="tab-page hidden"><div class="section-card p-6">Trang Khách hàng (đang hoàn thiện module)</div></div>
+      <div id="page-orders" class="tab-page hidden"><div class="section-card p-6">Trang Đơn hàng (đang hoàn thiện module)</div></div>
+      <div id="page-settings" class="tab-page hidden"><div class="section-card p-6">Cài đặt cửa hàng</div></div>
+    </div>
+  </div>
+
+  <!-- Modals (Product, Customer, Order Detail) - copy đầy đủ từ file gốc nếu cần chi tiết hơn -->
+  <div id="product-modal" class="hidden fixed inset-0 bg-black/60 z-[100] flex items-center justify-center p-4">
+    <div class="modal bg-white w-full max-w-lg rounded-3xl shadow-xl overflow-hidden">
+      <div class="px-6 py-5 border-b flex justify-between items-center bg-slate-50">
+        <h3 id="product-modal-title" class="font-semibold text-xl">Thêm sản phẩm mới</h3>
+        <button onclick="hideProductModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-times fa-lg"></i></button>
+      </div>
+      <div class="p-6 space-y-4">
+        <input type="hidden" id="product-edit-id">
+        <div class="grid grid-cols-2 gap-4">
+          <div><label class="text-xs font-medium text-slate-500">Mã sản phẩm</label><input id="product-code" class="mt-1 w-full border border-slate-200 rounded-2xl px-4 py-2.5 text-sm font-mono"></div>
+          <div><label class="text-xs font-medium text-slate-500">Đơn vị tính</label><input id="product-unit" class="mt-1 w-full border border-slate-200 rounded-2xl px-4 py-2.5 text-sm"></div>
+        </div>
+        <div><label class="text-xs font-medium text-slate-500">Tên sản phẩm</label><input id="product-name" class="mt-1 w-full border border-slate-200 rounded-2xl px-4 py-2.5 text-sm"></div>
+        <div class="grid grid-cols-2 gap-4">
+          <div><label class="text-xs font-medium text-slate-500">Danh mục</label>
+            <select id="product-category" class="mt-1 w-full border border-slate-200 rounded-2xl px-4 py-2.5 text-sm">
+              <option value="ray-nam-cham">Đèn Ray Nam Châm</option>
+              <option value="nguon-led">Nguồn & Driver LED</option>
+              <option value="quat-tran">Quạt trần</option>
+              <option value="den-trang-tri">Đèn trang trí</option>
+              <option value="phu-kien">Phụ kiện & Khác</option>
+            </select>
+          </div>
+          <div><label class="text-xs font-medium text-slate-500">Tồn kho</label><input id="product-stock" type="number" class="mt-1 w-full border border-slate-200 rounded-2xl px-4 py-2.5 text-sm"></div>
+        </div>
+        <div><label class="text-xs font-medium text-slate-500">Giá bán (đ)</label><input id="product-price" type="number" class="mt-1 w-full border border-slate-200 rounded-2xl px-4 py-2.5 text-sm font-semibold"></div>
+      </div>
+      <div class="px-6 py-4 bg-slate-50 flex justify-end gap-x-3">
+        <button onclick="hideProductModal()" class="px-6 py-2.5 text-sm font-medium rounded-2xl border">Hủy</button>
+        <button onclick="saveProductFromModal()" class="px-8 py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-semibold rounded-2xl text-sm">Lưu sản phẩm</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast-container" class="fixed bottom-6 right-6 z-[200] space-y-2"></div>
+
+  <!-- Scripts -->
+  <script src="js/supabase-client.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
