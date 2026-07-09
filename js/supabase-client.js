@@ -1,10 +1,10 @@
 // ==================== SUPABASE CLIENT ====================
 // Thay thế 2 giá trị bên dưới bằng thông tin từ Supabase project của bạn
 
-const SUPABASE_URL = 'https://tvjzapgymsjijcbhnudl.supabase.co/rest/v1/';
+const SUPABASE_URL = 'https://tvjzapgymsjijcbhnudl.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR2anphcGd5bXNqaWpjYmhudWRsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM1ODIyMTUsImV4cCI6MjA5OTE1ODIxNX0.CYsSyAjWsIhDHVS5Bu_zOnqwzs3SzawlLDuy6IMAjl8';
 
-let supabase = null;
+let supabaseClient = null;
 let currentUser = null;
 
 // Khởi tạo Supabase (gọi 1 lần khi app start)
@@ -20,7 +20,7 @@ function initSupabase() {
   }
 
   try {
-    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     console.log('%c[Supabase] Client initialized thành công', 'color:#16a34a');
     return true;
   } catch (err) {
@@ -31,11 +31,11 @@ function initSupabase() {
 
 // Đăng nhập
 async function loginWithSupabase(email, password) {
-  if (!supabase) {
+  if (!supabaseClient) {
     throw new Error('Supabase chưa được khởi tạo hoặc cấu hình sai');
   }
 
-  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+  const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
   if (error) throw error;
 
   currentUser = data.user;
@@ -44,17 +44,17 @@ async function loginWithSupabase(email, password) {
 
 // Đăng xuất
 async function logoutFromSupabase() {
-  if (supabase) {
-    await supabase.auth.signOut();
+  if (supabaseClient) {
+    await supabaseClient.auth.signOut();
   }
   currentUser = null;
 }
 
 // Kiểm tra session hiện tại
 async function checkSupabaseSession() {
-  if (!supabase) return null;
+  if (!supabaseClient) return null;
 
-  const { data: { session } } = await supabase.auth.getSession();
+  const { data: { session } } = await supabaseClient.auth.getSession();
   if (session) {
     currentUser = session.user;
     return currentUser;
@@ -64,7 +64,7 @@ async function checkSupabaseSession() {
 
 // Lấy Supabase client (dùng ở các file khác)
 function getSupabase() {
-  return supabase;
+  return supabaseClient;
 }
 
 function getCurrentUser() {
