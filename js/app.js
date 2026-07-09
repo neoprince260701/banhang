@@ -11,13 +11,114 @@ let currentEditingProductId = null;
 let currentEditingCustomerId = null;
 let currentViewingOrderId = null;
 
-const CATEGORIES = {
-  'ray-nam-cham': 'Đèn Ray Nam Châm',
-  'nguon-led': 'Nguồn & Driver LED',
-  'quat-tran': 'Quạt trần',
-  'den-trang-tri': 'Đèn trang trí',
-  'phu-kien': 'Phụ kiện & Khác'
-};
+// ==================== DANH MỤC TÙY CHỈNH ====================
+// Load categories từ localStorage (cho phép người dùng tự thêm danh mục)
+function getCategories() {
+  const saved = localStorage.getItem('vuhoang_categories');
+  if (saved) {
+    return JSON.parse(saved);
+  }
+  // Danh mục mặc định
+  return {
+    'ray-nam-cham': 'Đèn Ray Nam Châm',
+    'nguon-led': 'Nguồn & Driver LED',
+    'quat-tran': 'Quạt trần',
+    'den-trang-tri': 'Đèn trang trí',
+    'phu-kien': 'Phụ kiện & Khác'
+  };
+}
+
+let CATEGORIES = getCategories();
+
+// Lưu categories khi có thay đổi
+function saveCategories() {
+  localStorage.setItem('vuhoang_categories', JSON.stringify(CATEGORIES));
+}
+
+// Thêm danh mục mới
+function addNewCategory(key, label) {
+  if (!key || !label) return false;
+  if (CATEGORIES[key]) return false;
+
+  CATEGORIES[key] = label;
+  saveCategories();
+  return true;
+}
+
+// Render danh sách danh mục vào select
+function renderCategoryOptions(selectId = 'product-category', selectedValue = null) {
+  const select = document.getElementById(selectId);
+  if (!select) return;
+
+  select.innerHTML = '';
+
+  Object.keys(CATEGORIES).forEach(key => {
+    const option = document.createElement('option');
+    option.value = key;
+    option.textContent = CATEGORIES[key];
+    if (selectedValue === key) option.selected = true;
+    select.appendChild(option);
+  });
+
+  // Thêm option "Khác" nếu chưa có
+  if (!Object.keys(CATEGORIES).includes('khac')) {
+    const otherOption = document.createElement('option');
+    otherOption.value = 'khac';
+    otherOption.textContent = 'Khác (tự nhập)';
+    select.appendChild(otherOption);
+  }
+}
+
+// Xử lý khi thay đổi danh mục
+function handleCategoryChange() {
+  const select = document.getElementById('product-category');
+  if (!select) return;
+
+  if (select.value === 'khac') {
+    showAddCategoryInput();
+  }
+}
+
+// Hiển thị input thêm danh mục mới
+function showAddCategoryInput() {
+  const inputDiv = document.getElementById('add-category-input');
+  if (inputDiv) inputDiv.classList.remove('hidden');
+}
+
+// Ẩn input thêm danh mục
+function hideAddCategoryInput() {
+  const inputDiv = document.getElementById('add-category-input');
+  const input = document.getElementById('new-category-label');
+  if (inputDiv) inputDiv.classList.add('hidden');
+  if (input) input.value = '';
+}
+
+// Thêm danh mục mới từ input
+function addNewCategoryFromInput() {
+  const input = document.getElementById('new-category-label');
+  const select = document.getElementById('product-category');
+  if (!input || !select) return;
+
+  const label = input.value.trim();
+  if (!label) {
+    showToast('Vui lòng nhập tên danh mục', 'error');
+    return;
+  }
+
+  // Tạo key từ label (bỏ dấu, lowercase, thay khoảng trắng bằng -)
+  const key = label.toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/\s+/g, '-');
+
+  if (addNewCategory(key, label)) {
+    // Render lại select
+    renderCategoryOptions('product-category', key);
+    hideAddCategoryInput();
+    showToast('Đã thêm danh mục mới', 'success');
+  } else {
+    showToast('Danh mục đã tồn tại', 'error');
+  }
+}
 
 // ==================== HELPERS ====================
 function showToast(message, type = 'success') {
@@ -598,20 +699,24 @@ function showProductModal(product = null) {
     document.getElementById('product-edit-id').value = product.id;
     document.getElementById('product-code').value = product.code || '';
     document.getElementById('product-name').value = product.name || '';
-    document.getElementById('product-category').value = product.category || 'ray-nam-cham';
     document.getElementById('product-unit').value = product.unit || 'Cái';
     document.getElementById('product-price').value = product.price || 0;
     document.getElementById('product-stock').value = product.stock || 0;
+
+    // Render danh mục + chọn giá trị hiện tại
+    renderCategoryOptions('product-category', product.category);
   } else {
     currentEditingProductId = null;
     title.textContent = 'Thêm sản phẩm mới';
     document.getElementById('product-edit-id').value = '';
     document.getElementById('product-code').value = '';
     document.getElementById('product-name').value = '';
-    document.getElementById('product-category').value = 'ray-nam-cham';
     document.getElementById('product-unit').value = 'Cái';
     document.getElementById('product-price').value = '185000';
     document.getElementById('product-stock').value = '50';
+
+    // Render danh mục
+    renderCategoryOptions('product-category');
   }
   
   modal.style.display = 'flex';

@@ -137,6 +137,9 @@
           <button onclick="switchTab('settings')" id="tab-settings" class="nav-tab flex items-center gap-x-2 px-5 py-2.5 text-sm font-semibold rounded-2xl text-white/90 hover:text-white">
             <i class="fa-solid fa-cog w-4"></i><span>Cài đặt</span>
           </button>
+          <button onclick="switchTab('categories')" id="tab-categories" class="nav-tab flex items-center gap-x-2 px-5 py-2.5 text-sm font-semibold rounded-2xl text-white/90 hover:text-white">
+            <i class="fa-solid fa-tags w-4"></i><span>Danh mục</span>
+          </button>
         </div>
       </div>
     </header>
@@ -429,14 +432,22 @@
         </div>
         <div><label class="text-xs font-medium text-slate-500">Tên sản phẩm</label><input id="product-name" class="mt-1 w-full border border-slate-200 rounded-2xl px-4 py-2.5 text-sm"></div>
         <div class="grid grid-cols-2 gap-4">
-          <div><label class="text-xs font-medium text-slate-500">Danh mục</label>
-            <select id="product-category" class="mt-1 w-full border border-slate-200 rounded-2xl px-4 py-2.5 text-sm">
-              <option value="ray-nam-cham">Đèn Ray Nam Châm</option>
-              <option value="nguon-led">Nguồn & Driver LED</option>
-              <option value="quat-tran">Quạt trần</option>
-              <option value="den-trang-tri">Đèn trang trí</option>
-              <option value="phu-kien">Phụ kiện & Khác</option>
-            </select>
+          <div>
+            <label class="text-xs font-medium text-slate-500">Danh mục</label>
+            <div class="flex gap-2">
+              <select id="product-category" class="flex-1 border border-slate-200 rounded-2xl px-4 py-2.5 text-sm" onchange="handleCategoryChange()">
+                <!-- Render động bằng JS -->
+              </select>
+              <button type="button" onclick="showAddCategoryInput()" class="px-3 py-2.5 bg-amber-100 hover:bg-amber-200 text-amber-700 rounded-2xl text-sm font-medium whitespace-nowrap">
+                + Mới
+              </button>
+            </div>
+            <!-- Input thêm danh mục mới -->
+            <div id="add-category-input" class="hidden mt-2 flex gap-2">
+              <input id="new-category-label" type="text" placeholder="Tên danh mục mới..." class="flex-1 border border-slate-200 rounded-2xl px-3 py-2 text-sm">
+              <button type="button" onclick="addNewCategoryFromInput()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl text-sm">Thêm</button>
+              <button type="button" onclick="hideAddCategoryInput()" class="px-3 py-2 border border-slate-300 rounded-2xl text-sm">Hủy</button>
+            </div>
           </div>
           <div><label class="text-xs font-medium text-slate-500">Tồn kho</label><input id="product-stock" type="number" class="mt-1 w-full border border-slate-200 rounded-2xl px-4 py-2.5 text-sm"></div>
         </div>
