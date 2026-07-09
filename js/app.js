@@ -516,12 +516,20 @@ async function seedDemoData() {
   ];
 
   try {
-    // Clear old data (optional - comment out if you want to keep existing)
-    // await supabase.from('products').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-    // await supabase.from('customers').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+    // Xóa dữ liệu demo cũ trước khi seed để tránh duplicate code
+    const demoCodes = demoProducts.map(p => p.code);
+    if (demoCodes.length > 0) {
+      await supabase.from('products').delete().in('code', demoCodes);
+    }
 
     const { error: pErr } = await supabase.from('products').insert(demoProducts);
     if (pErr) throw pErr;
+
+    // Xóa khách hàng demo cũ (dựa trên tên)
+    const demoCustomerNames = demoCustomers.map(c => c.name);
+    if (demoCustomerNames.length > 0) {
+      await supabase.from('customers').delete().in('name', demoCustomerNames);
+    }
 
     const { error: cErr } = await supabase.from('customers').insert(demoCustomers);
     if (cErr) throw cErr;
